@@ -1,0 +1,31 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: hmdp
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/hmdp?useSSL=false&serverTimezone=UTC
+    username: root
+    password: "0527"
+    type: com.alibaba.druid.pool.DruidDataSource
+  redis:
+    host: localhost
+    port: 6379
+    #    password:
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+        time-between-eviction-runs: 10s
+  jackson:
+    default-property-inclusion: non_null # JSON处理时忽略非空字段
+mybatis-plus:
+  type-aliases-package: com.hmdp.entity # 别名扫描包
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+logging:
+  level:
+    com.hmdp: debug
