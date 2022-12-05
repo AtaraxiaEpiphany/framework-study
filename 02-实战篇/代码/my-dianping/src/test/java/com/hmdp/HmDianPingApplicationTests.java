@@ -1,26 +1,32 @@
 package com.hmdp;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.hmdp.entity.Shop;
 import com.hmdp.entity.ShopType;
 import com.hmdp.service.IShopTypeService;
+import com.hmdp.service.impl.ShopServiceImpl;
+import com.hmdp.utils.RedisData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import com.github.pagehelper.PageHelper;
 
 import javax.annotation.Resource;
 
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.LongStream;
 //import com.github.pagehelper.PageHelper;
+import static com.hmdp.utils.RedisConstants.*;
 
-import static com.hmdp.utils.RedisConstants.CACHE_NULL_TTL;
-import static com.hmdp.utils.RedisConstants.CACHE_SHOP_KEY;
 
 @SpringBootTest
 class HmDianPingApplicationTests {
@@ -30,6 +36,30 @@ class HmDianPingApplicationTests {
 
     @Autowired
     private IShopTypeService shopTypeService;
+
+    @Resource
+    private ShopServiceImpl shopService;
+
+
+    @Test
+    public void testSave() {
+        Long id = 2L;
+        Long seconds = 30L;
+        Long[] longs = LongStream.range(1, 6).boxed().toArray(Long[]::new);
+        for (Long aLong : longs) {
+            shopService.saveShop2redis(aLong, seconds);
+        }
+//        Shop shop = shopService.getById(id);
+//        RedisData redisData = new RedisData(shop, LocalDateTime.now().plusSeconds(seconds));
+//        System.out.println("========================");
+//        System.out.println("redisData ==> " + redisData);
+//        Map<String, Object> map = BeanUtil.beanToMap(redisData, new HashMap<>(), CopyOptions.create()
+//                .setIgnoreNullValue(true)
+//                .setFieldValueEditor((name, value) -> name.equals("expireTime") ? value : JSONUtil.toJsonStr(value)));
+//        System.out.println(map);
+////        RedisData<Shop> shopRedisData = BeanUtil.fillBeanWithMap(map, new RedisData<Shop>(), false);
+//        System.out.println("========================");
+    }
 
     @Test
     public void testRedis() {
