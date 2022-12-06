@@ -3,6 +3,7 @@ package com.hmdp;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.pagehelper.PageHelper;
@@ -105,6 +106,28 @@ class HmDianPingApplicationTests {
         page.getRecords().forEach(System.out::println);
         System.out.println("==================");
 
+    }
+
+
+    @Test
+    public void testUtil() {
+        String EMPTY = "";
+        String NULL = null;
+        String SPACE = " ";
+        String s = " a";
+        System.out.println("StrUtil.isBlank(EMPTY) ==> " + StrUtil.isNotBlank(EMPTY));
+        System.out.println("StrUtil.isBlank(NULL) ==> " + StrUtil.isNotBlank(NULL));
+        System.out.println("StrUtil.isBlank(SPACE) ==> " + StrUtil.isNotBlank(SPACE));
+        System.out.println("StrUtil.isNotBlank(s) ==> " + StrUtil.isNotBlank(s));
+        try {
+            redisTemplate.opsForValue().set("test", "");
+        } finally {
+            redisTemplate.expire("test", 30L, TimeUnit.SECONDS);
+        }
+        String test = redisTemplate.opsForValue().get("test");
+        if (StrUtil.isNotBlank(test)) {
+        }
+        System.out.println(test);
     }
 
 }
