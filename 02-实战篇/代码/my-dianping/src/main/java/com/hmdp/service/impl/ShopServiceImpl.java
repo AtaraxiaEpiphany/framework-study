@@ -179,6 +179,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
                 } finally {
                     redisTemplate.expire(key, CACHE_NULL_TTL, TimeUnit.MINUTES);
                 }
+                return null;
             }
             //数据中有数据,写入redis
             Map<String, Object> shopMap = BeanUtil.beanToMap(shop, new HashMap<>(),

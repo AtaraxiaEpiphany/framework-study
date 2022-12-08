@@ -13,7 +13,10 @@ import com.hmdp.entity.ShopType;
 import com.hmdp.service.IShopTypeService;
 import com.hmdp.service.impl.ShopServiceImpl;
 import com.hmdp.utils.RedisData;
+import com.hmdp.utils.RedisIDGenerator;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.openjdk.jol.info.ClassLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -23,7 +26,7 @@ import javax.annotation.Resource;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.LongStream;
 //import com.github.pagehelper.PageHelper;
 import static com.hmdp.utils.RedisConstants.*;
@@ -31,6 +34,9 @@ import static com.hmdp.utils.RedisConstants.*;
 
 @SpringBootTest
 class HmDianPingApplicationTests {
+
+    @Autowired
+    private RedisIDGenerator redisIDGenerator;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -41,6 +47,12 @@ class HmDianPingApplicationTests {
     @Resource
     private ShopServiceImpl shopService;
 
+    @Test
+    void testJol() {
+        Object obj = new Object();
+        ClassLayout classLayout = ClassLayout.parseInstance(obj);
+        System.out.println(classLayout);
+    }
 
     @Test
     public void testSave() {
@@ -108,7 +120,6 @@ class HmDianPingApplicationTests {
 
     }
 
-
     @Test
     public void testUtil() {
         String EMPTY = "";
@@ -130,4 +141,28 @@ class HmDianPingApplicationTests {
         System.out.println(test);
     }
 
+    private ExecutorService es = Executors.newFixedThreadPool(500);
+    //拥有五百个线程的线程池
+
+    @Test
+    void testRedisIncrease() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(300);
+        long start = System.currentTimeMillis();
+        Runnable task = () -> {
+            //每个线程获取100个id
+            for (int i = 0; i < 100; i++) {
+                long id = redisIDGenerator.GetId("test");
+                System.out.println("id ==> " + id);
+            }
+            latch.countDown();
+        };
+        for (int i = 0; i < 300; i++) {
+            //提交300个任务给线程池
+            es.submit(task);
+        }
+        latch.await();
+        long end = System.currentTimeMillis();
+        long time = end - start;
+        System.out.println("time ==> " + time);
+    }
 }

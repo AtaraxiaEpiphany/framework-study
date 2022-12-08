@@ -56,6 +56,8 @@ public class CacheClient {
 
 
     /**
+     * Get a stuff to avoid cache pass through.
+     *
      * @param prefixKey  the prefix key of the redis's key.
      * @param id         a stuff id.
      * @param type       the return type.
