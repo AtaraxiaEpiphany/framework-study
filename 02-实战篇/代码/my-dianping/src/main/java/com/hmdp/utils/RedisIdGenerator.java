@@ -1,24 +1,22 @@
 package com.hmdp.utils;
 
-import cn.hutool.core.bean.BeanUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class RedisIDGenerator {
+public class RedisIdGenerator {
     public static final long BEGIN_TIMESTAMP = 1670425045;
 
     public static final int COUNT_BITS = 32;
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    public long GetId(String prefixKey) {
+    public long nextId(String prefixKey) {
         // TODO 1.生成当前时间戳 (31位)
         LocalDateTime now = LocalDateTime.now();
         long now_timestamp = now.toEpochSecond(ZoneOffset.UTC);

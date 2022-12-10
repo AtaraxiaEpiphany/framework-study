@@ -1,20 +1,14 @@
 package com.hmdp;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.bean.copier.CopyOptions;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.hmdp.entity.Shop;
 import com.hmdp.entity.ShopType;
 import com.hmdp.service.IShopTypeService;
 import com.hmdp.service.impl.ShopServiceImpl;
-import com.hmdp.utils.RedisData;
-import com.hmdp.utils.RedisIDGenerator;
-import org.junit.jupiter.api.AfterAll;
+import com.hmdp.utils.RedisIdGenerator;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openjdk.jol.info.ClassLayout;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +18,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import javax.annotation.Resource;
 
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.LongStream;
@@ -36,7 +29,7 @@ import static com.hmdp.utils.RedisConstants.*;
 class HmDianPingApplicationTests {
 
     @Autowired
-    private RedisIDGenerator redisIDGenerator;
+    private RedisIdGenerator redisIDGenerator;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -46,6 +39,26 @@ class HmDianPingApplicationTests {
 
     @Resource
     private ShopServiceImpl shopService;
+
+    /**
+     * When the intern method is invoked, if the pool already contains a
+     * string equal to this {@code String} object as determined by
+     * the {@link #equals(Object)} method, then the string from the pool is
+     * returned. Otherwise, this {@code String} object is added to the
+     * pool and a reference to this {@code String} object is returned.
+     */
+    @Test
+    void testIntern() {
+        String t1 = "intern";
+        String t2 = "intern";
+        String t3 = new String("intern");
+        System.out.println("t1 ==> " + t1);
+        System.out.println("t2 ==> " + t2);
+        System.out.println("====================");
+        System.out.println(t1 == t2 && t1 == t3);
+        System.out.println(t2 == t3.intern() && t2 == t3.intern());
+        System.out.println("====================");
+    }
 
     @Test
     void testJol() {
@@ -151,7 +164,7 @@ class HmDianPingApplicationTests {
         Runnable task = () -> {
             //每个线程获取100个id
             for (int i = 0; i < 100; i++) {
-                long id = redisIDGenerator.GetId("test");
+                long id = redisIDGenerator.nextId("test");
                 System.out.println("id ==> " + id);
             }
             latch.countDown();
