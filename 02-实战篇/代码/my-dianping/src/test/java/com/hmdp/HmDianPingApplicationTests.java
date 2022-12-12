@@ -64,7 +64,9 @@ class HmDianPingApplicationTests {
     void testJol() {
         Object obj = new Object();
         ClassLayout classLayout = ClassLayout.parseInstance(obj);
-        System.out.println(classLayout);
+        System.out.println(classLayout.toPrintable());
+        System.out.println(ClassLayout.parseInstance("test").toPrintable());
+        System.out.println(ClassLayout.parseInstance("123456").toPrintable());
     }
 
     @Test

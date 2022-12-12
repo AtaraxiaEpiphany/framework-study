@@ -22,6 +22,11 @@ import java.util.concurrent.TimeUnit;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_KEY;
 import static com.hmdp.utils.RedisConstants.LOGIN_USER_TTL;
 
+/*
+    - prehandle() – called before the execution of the actual handler
+    - postHandle() – called after the handler is executed
+    - afterCompletion() – called after the complete request is finished and the view is generated
+ */
 @Slf4j
 public class LoginInterceptor implements HandlerInterceptor {
 //    private RedisTemplate redisTemplate;
@@ -69,7 +74,7 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        //移除保存的用户,防止内存泄漏
+        //在view已经渲染后移除保存的用户,防止内存泄漏
         UserDTO user = UserHolder.getUser();
         UserHolder.removeUser();
     }

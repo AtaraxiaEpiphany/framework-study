@@ -7,10 +7,13 @@ import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmdp.utils.PrintColor;
 import com.hmdp.utils.RedisIdGenerator;
 import com.hmdp.utils.UserHolder;
+import com.hmdp.utils.redisLock.SimpleRedisLock;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +36,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Resource
     private RedisIdGenerator redisIdGenerator;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public Result secKillVoucher(Long voucherId) {
@@ -58,9 +64,26 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return Result.fail("库存不足!");
         }
         Long userId = UserHolder.getUser().getId();
-        synchronized (userId.toString().intern()) {
-            System.out.println("\33[34m" + "userId ==> " + System.identityHashCode(userId) + "\33[m");
-            System.out.println("\33[34m" + Thread.currentThread().getName() + " got lock==>" + userId + "\33[m");
+
+        /*
+        synchronized不是分布式🔒
+         */
+        // TODO 创建🔒对象
+        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+        // TODO 尝试获取🔒
+        boolean isLock = lock.tryLock(30);
+        if (!isLock) {
+            //获取锁失败
+            return Result.fail("不允许重复下单!");
+        }
+
+//        synchronized (userId.toString().intern()) {
+        /*
+        使用分布式锁
+         */
+        try {
+            PrintColor.FG_BLUE.printWithColor("userId ==> " + System.identityHashCode(userId.toString().intern()));
+            PrintColor.FG_BLUE.printWithColor(Thread.currentThread().getName() + " got lock==>" + userId);
             //解决锁释放但是事务还未提交的问题
             // transaction --> release lock
 
@@ -72,11 +95,16 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             // 事务是通过aop得到代理对象执行方法,因此会存在事务失效
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             System.out.println("=======");
-            System.out.println("\33[34mproxy ==> " + proxy.getClass() + "\33[m");
+            PrintColor.FG_BLUE.printWithColor("proxy ==> " + proxy.getClass());
             System.out.println("=======");
             //得到当前aop代理对象
             return proxy.createVoucherOrder(voucherId, voucher, userId);
+        } finally {
+            //TODO 确保锁的释放
+            lock.unLock();
         }
+//        }
+
 
     }
 
@@ -84,7 +112,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
      * 生成订单号
      * NOTICE: 不能synchronize(this),效率低,正确的做法应该是synchronize(userId)锁住用户
      * 注意事务失效的问题:事务方法被spring生成代理对象,如果在某个方法内调用该方法,
-     * 会变成原生对象在调用
+     * 会变成原生对象this在调用
+     * 集群模式锁会失效,因为每个集群都有各自的JVM 锁监视器,因此每个集群都能获得一把锁,即使用户id一致
      *
      * @param voucherId
      * @param voucher
@@ -104,7 +133,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                 .eq(VoucherOrder::getUserId, userId)
                 .eq(VoucherOrder::getVoucherId, voucherId)
                 .count();
-        System.out.println("\33[34m" + "count ==> " + count + "\33[m");
+        PrintColor.FG_BLUE.printWithColor("count ==> " + count);
         if (count > 0) {
             return Result.fail("每个用户限购一次!");
         }
