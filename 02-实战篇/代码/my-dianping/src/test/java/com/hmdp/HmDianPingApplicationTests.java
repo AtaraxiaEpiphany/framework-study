@@ -10,10 +10,17 @@ import com.hmdp.service.impl.ShopServiceImpl;
 import com.hmdp.utils.RedisIdGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.objenesis.instantiator.util.UnsafeUtils;
 import org.openjdk.jol.info.ClassLayout;
+import org.redisson.Redisson;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.redisson.client.RedisClient;
+import org.redisson.client.RedisConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import sun.misc.Unsafe;
 
 import javax.annotation.Resource;
 
@@ -39,6 +46,30 @@ class HmDianPingApplicationTests {
 
     @Resource
     private ShopServiceImpl shopService;
+
+    @Resource
+    private RedissonClient redissonClient;
+
+
+    @Test
+    void testRedisson() {
+        System.out.println("redissonClient ==> " + redissonClient);
+        //可重入锁
+        RLock lock = redissonClient.getLock("anyLock");
+        try {
+            //尝试获取锁,param  等待时间(没拿到锁会重试),释放时间,单位
+            boolean isLock = lock.tryLock(1, 10, TimeUnit.SECONDS);
+            if (isLock) {
+                try {
+                    System.out.println("get lock...");
+                } finally {
+                    lock.unlock();
+                }
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * When the intern method is invoked, if the pool already contains a
@@ -179,5 +210,12 @@ class HmDianPingApplicationTests {
         long end = System.currentTimeMillis();
         long time = end - start;
         System.out.println("time ==> " + time);
+    }
+
+    @Test
+    void testUnsafe() {
+        Unsafe unsafe = UnsafeUtils.getUnsafe();
+        System.out.println("unsafe ==> " + unsafe);
+        System.out.println(unsafe.getAddress(1234515135L));
     }
 }

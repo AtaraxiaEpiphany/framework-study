@@ -54,9 +54,14 @@ public class SimpleRedisLock implements ILock {
      * redis.call()
      * KEYS
      * ARGV
+     * 不够完美:
+     * 1.不是可重入锁
+     * 2.(获取锁失败)不可重试
+     * 3.存在超时释放
+     * 4.可能不满足集群间主从一致(读写分离)
      */
     @Override
-    public void unLock() {
+    public void unlock() {
         String key = PREFIX_KEY + name;
         Long deleteNums = redisTemplate.execute(
                 //lua脚本
