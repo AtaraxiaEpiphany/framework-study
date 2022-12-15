@@ -7,8 +7,11 @@ import com.github.pagehelper.PageInfo;
 import com.hmdp.entity.ShopType;
 import com.hmdp.service.IShopTypeService;
 import com.hmdp.service.impl.ShopServiceImpl;
+import com.hmdp.utils.PrintColor;
 import com.hmdp.utils.RedisIdGenerator;
+import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.objenesis.instantiator.util.UnsafeUtils;
 import org.openjdk.jol.info.ClassLayout;
@@ -50,6 +53,64 @@ class HmDianPingApplicationTests {
     @Resource
     private RedissonClient redissonClient;
 
+    private RLock lock;
+
+    /**
+     * 设置同一把锁
+     */
+    @BeforeEach
+    void setup() {
+        lock = redissonClient.getLock("test");
+    }
+
+    @Test
+    void testAnonymous() {
+        Object anonymous = new Object() {
+        };
+        Object obj = new Object();
+        PrintColor.FG_BLUE.printWithColor("anonymous ==> " + anonymous);
+        PrintColor.FG_BLUE.printWithColor("anonymous.getClass() ==> " + anonymous.getClass());
+        PrintColor.FG_BLUE.printWithColor("object ==> " + obj);
+        PrintColor.FG_BLUE.printWithColor("object.getClass() ==> " + obj.getClass());
+
+    }
+
+    /**
+     * 测试RLock的可重入性
+     */
+
+    @Test
+    void testRLock() {
+        boolean isLock = lock.tryLock();
+        Thread thread = Thread.currentThread();
+        //get current method's name
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        try {
+            if (isLock) {
+                PrintColor.FG_BLUE.printWithColor(thread.getName() + "-" + thread.getId() + " got the lock...in " + methodName);
+                m();
+            }
+        } finally {
+            PrintColor.FG_BLUE.printWithColor(thread.getName() + "-" + thread.getId() + " is release the lock...in " + methodName);
+            lock.unlock();
+        }
+    }
+
+    void m() {
+        boolean isLock = lock.tryLock();
+        Thread thread = Thread.currentThread();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        try {
+            if (isLock) {
+                PrintColor.FG_BLUE.printWithColor(thread.getName() + "-" + thread.getId() + " got the lock...in " + methodName);
+            }
+        } finally {
+            PrintColor.FG_BLUE.printWithColor(thread.getName() + "-" + thread.getId() + " is release the lock...in " + methodName);
+            lock.unlock();
+        }
+    }
 
     @Test
     void testRedisson() {

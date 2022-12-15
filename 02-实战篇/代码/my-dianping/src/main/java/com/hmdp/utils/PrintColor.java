@@ -30,7 +30,7 @@ public enum PrintColor {
         this.code = code;
     }
 
-    public void printWithColor(String msg) {
-        System.out.println(this.code + msg + NONE.code);
+    public void printWithColor(String text) {
+        System.out.println(this.code + text + NONE.code);
     }
 }

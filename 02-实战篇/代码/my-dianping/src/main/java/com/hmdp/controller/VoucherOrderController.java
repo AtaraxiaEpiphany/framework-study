@@ -26,11 +26,12 @@ public class VoucherOrderController {
 
     /**
      * 秒杀券下单
+     *
      * @param voucherId
      * @return
      */
     @PostMapping("seckill/{id}")
     public Result secKillVoucher(@PathVariable("id") Long voucherId) {
-        return voucherOrderService.secKillVoucher(voucherId);
+        return voucherOrderService.secKillVoucherWithOptimize(voucherId);
     }
 }
