@@ -1,0 +1,47 @@
+version: "3.9"
+services:
+  web:
+    build: 
+      context: ./frontend
+      dockerfile: "Dockerfile"
+      labels:
+        - user="Ataraxia"
+        - email="yuewu0527@qq.com"
+          #volumes:
+          #- web-dp:/usr/share/nginx/html
+    volumes:
+      - "./web/html/hmdp/imgs:/usr/share/nginx/html/hmdp/imgs"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "api"
+    restart: "on-failure"
+  api:
+    build: ./backend
+    #ports:
+      #- "8081:8081"
+    depends_on:
+      - "db"
+      - "cache"
+    # container_name: testapi
+    restart: "always"
+  db:
+    image: "mysql"
+    environment:
+      - MYSQL_ROOT_PASSWORD="0527"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: "always"
+  cache:
+    image: "redis"
+    volumes:
+      - redis-data:/data
+    restart: "always"
+#command:[]
+volumes:
+  mysql-data:
+    external: true
+  web-dp:
+    external: true
+  redis-data:
+    external: true

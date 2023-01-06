@@ -10,10 +10,11 @@ import org.springframework.context.annotation.Configuration;
 public class RedisConfig {
     @Bean
     public RedissonClient redissonClient() {
-//        Config config = new Config();
+        Config config = new Config();
         //单机redis
-//        config.useSingleServer().setAddress("redis://127.0.0.1:6739");
-//        config.useClusterServers().addNodeAddress("redis://127.0.0.1:6739");
+        config.useSingleServer().setAddress("redis://127.0.0.1:6379");
+//        config.useSingleServer().setAddress("redis://redis:6379");
+//        config.useClusterServers().addNodeAddress("redis://127.0.0.1:6379");
         return Redisson.create();
     }
 }

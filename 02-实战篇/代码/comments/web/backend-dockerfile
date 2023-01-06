@@ -1,0 +1,5 @@
+FROM openjdk:17-jdk-alpine
+# COPY hm-dianping-0.0.1-SNAPSHOT.jar /target/app.jar
+COPY network-demo-1.0-SNAPSHOT.jar /target/app.jar
+EXPOSE 8081
+CMD ["java", "-jar", "-Dspring.profiles.active=compose", "/target/app.jar"]
